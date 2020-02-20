@@ -13,10 +13,19 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import Button from '@material-ui/core/Button';
 
 import ImageUploader from '../components/ImageUploader';
+
 import { getAllCategories } from '../controllers/category';
 import { createProduct as createProductController } from '../controllers/product';
+import { uploadToStore } from '../controllers/image';
+
+import { LS_SINGLE_PARSED_POST } from '../variables';
+
 import { Category as CategoryInterface } from '../types/category';
 import { Product as ProductInterface } from '../types/product';
+import { SinglePost as ParseSinglePostInterface } from '../types/parse';
+
+import * as imageToBase from '../services/imageToBase';
+import * as ls from '../services/localStorage';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -42,11 +51,25 @@ const CreateProduct = (props: RouteComponentProps<MatchParams>) => {
     subcategory_id: '',
     description: '',
     price: '',
-    photos: [],
+    photos: [''],
     is_available: false
   });
 
   const classes = useStyles();
+
+  const getDataFromParse = async (): Promise<void> => {
+    let convertedImages: string[] = [];
+    const parsed: ParseSinglePostInterface = ls.get(LS_SINGLE_PARSED_POST);
+    for (let i = 0; i < parsed.post_images_urls.length; i++) {
+      const image = await imageToBase.convert(parsed.post_images_urls[i]);
+      convertedImages.push(image);
+    }
+    setForm(prev => ({
+      ...prev,
+      description: parsed.post_text,
+      photos: convertedImages
+    }));
+  };
 
   const fetchAll = async (): Promise<void> => {
     try {
@@ -55,6 +78,7 @@ const CreateProduct = (props: RouteComponentProps<MatchParams>) => {
       const categories = res.filter(x => !x.parent_id);
       setCategories(categories);
       setSubcategories(subcategories);
+      getDataFromParse();
     } catch (err) {
       console.log(err);
     } finally {
@@ -87,8 +111,9 @@ const CreateProduct = (props: RouteComponentProps<MatchParams>) => {
       is_available: form.is_available
     };
     try {
-      const res = await createProductController(submitForm);
-      console.log(res);
+      const storedImages = await uploadToStore(form.photos);
+      submitForm.photos = storedImages;
+      await createProductController(submitForm);
     } catch (err) {
       console.log(err);
     } finally {
@@ -102,7 +127,7 @@ const CreateProduct = (props: RouteComponentProps<MatchParams>) => {
 
   return (
     <div>
-      <ImageUploader />
+      <ImageUploader images={form.photos} />
       <Input
         variant="filled"
         label="Название"

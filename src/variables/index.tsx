@@ -1,3 +1,5 @@
+export const LS_SINGLE_PARSED_POST = 'singleParsedPost';
+
 export const cities = [
   'Абай',
   'Акколь',

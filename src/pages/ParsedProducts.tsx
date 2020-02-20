@@ -11,7 +11,13 @@ import Button from '@material-ui/core/Button';
 
 import { getShop } from '../controllers/shop';
 import { getShop as getInstagramShop } from '../controllers/parser';
+
 import { ShopMainInfo } from '../types/shopMainInfo';
+import { SinglePost as ParseSinglePostInterface } from '../types/parse';
+
+import { LS_SINGLE_PARSED_POST } from '../variables';
+
+import * as ls from '../services/localStorage';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -51,8 +57,12 @@ const ParsedProducts = (props: RouteComponentProps<MatchParams>) => {
     fetchAll();
   }, []);
 
-  if (loading) return <LinearProgress />;
+  const addProductHandler = (value: ParseSinglePostInterface) => {
+    ls.set(LS_SINGLE_PARSED_POST, value);
+    props.history.push(`/create-product/${props.match.params.id}`);
+  };
 
+  if (loading) return <LinearProgress />;
   return (
     <div>
       <Link to={`/create-product/${props.match.params.id}`}>
@@ -65,9 +75,9 @@ const ParsedProducts = (props: RouteComponentProps<MatchParams>) => {
         </Button>
       </Link>
       <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {instagram.image_posts.map((v: any) => {
+        {instagram.image_posts.map((v: ParseSinglePostInterface) => {
           return (
-            <Card className={classes.root}>
+            <Card className={classes.root} key={v.timestamp}>
               <CardContent className={classes.df}>
                 <div className={classes.df}>
                   <Avatar
@@ -76,15 +86,14 @@ const ParsedProducts = (props: RouteComponentProps<MatchParams>) => {
                   ></Avatar>
                   <Typography>{v.post_text}</Typography>
                 </div>
-                <Link to={`/create-product/${props.match.params.id}`}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    style={{ marginLeft: 15 }}
-                  >
-                    Добавить товар
-                  </Button>
-                </Link>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  style={{ marginLeft: 15 }}
+                  onClick={() => addProductHandler(v)}
+                >
+                  Добавить товар
+                </Button>
               </CardContent>
             </Card>
           );
