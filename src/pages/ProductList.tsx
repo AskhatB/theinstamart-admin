@@ -11,6 +11,7 @@ import Typography from '@material-ui/core/Typography';
 
 import { getShop } from '../controllers/shop';
 import { getShop as getInstagramShop } from '../controllers/parser';
+import { getProductsByShop } from '../controllers/product';
 import { ShopMainInfo } from '../types/shopMainInfo';
 
 const useStyles = makeStyles(theme => ({
@@ -35,12 +36,13 @@ const ProductList = (props: RouteComponentProps<MatchParams>) => {
   const [shopId, setShopId] = useState();
   const [loading, setLoading] = useState(true);
   const [instagram, setInstagram] = useState();
+  const [products, setProducts] = useState();
 
   const fetchAll = async () => {
     try {
       const shop: ShopMainInfo = await getShop(+props.match.params.id);
-      const response = await getInstagramShop(shop.instagram);
-      setInstagram(response);
+      const products = await getProductsByShop(+props.match.params.id);
+      setProducts(products);
       setShopId(shop.shop_id);
     } catch (err) {
       console.log(err);
@@ -69,15 +71,15 @@ const ProductList = (props: RouteComponentProps<MatchParams>) => {
         </Button>
       </Link>
       <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {instagram.image_posts.map((v: any) => {
+        {products.map((v: any) => {
           return (
             <Card className={classes.root}>
               <CardContent className={classes.df}>
                 <Avatar
                   style={{ marginRight: 15, width: 150, height: 150 }}
-                  src={v.post_images_urls[0]}
+                  src={v.photos[0]}
                 ></Avatar>
-                <Typography>{v.post_text}</Typography>
+                <Typography>{v.good_name}</Typography>
               </CardContent>
             </Card>
           );
