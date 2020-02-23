@@ -13,9 +13,14 @@ import Chip from '@material-ui/core/Chip';
 import { createShop } from '../controllers/shop';
 import { getShop as getShopInstagram } from '../controllers/parser';
 import { getAllCategories } from '../controllers/category';
+import { uploadToStore } from '../controllers/image';
+
+import * as imageToBase from '../services/imageToBase';
+
 import { Category as CategoryInterface } from '../types/category';
-import * as variables from '../variables';
 import { ShopMainInfo } from '../types/shopMainInfo';
+
+import * as variables from '../variables';
 
 const CreateShop = (props: RouteComponentProps) => {
   const drawerWidth = 240;
@@ -25,18 +30,24 @@ const CreateShop = (props: RouteComponentProps) => {
   const [loading, setLoading] = useState(true);
   const [instagramLogin, setInstagramLogin] = useState('');
   const [categories, setCategories] = useState<CategoryInterface[]>([]);
-
-  // Form
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [followersCount, setFollowersCount] = useState();
-  const [goodsCount, setGoodCount] = useState();
-  const [wpp, setWpp] = useState('');
-  const [instagramLink, setInstagramLink] = useState('');
+  const [form, setForm] = useState({
+    shopName: '',
+    description: '',
+    cities: [],
+    logoPath: '',
+    goodsCount: '',
+    followersCount: '',
+    phoneNumbers: [],
+    whatsapp: '',
+    addresses: [],
+    categories: [],
+    instagram: ''
+  });
   const [phoneNumbers, setPhoneNumbers] = useState(['']);
   const [addresses, setAddresses] = useState(['']);
   const [categoriesForm, setCategoriesForm] = useState(['']);
   const [cities, setCities] = useState([]);
+  const [logo, setLogo] = useState();
 
   const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -45,8 +56,8 @@ const CreateShop = (props: RouteComponentProps) => {
         width: inputWidth
       },
       logo: {
-        width: theme.spacing(12),
-        height: theme.spacing(12)
+        width: theme.spacing(25),
+        height: theme.spacing(25)
       },
       drawerPaper: {
         width: drawerWidth
@@ -74,6 +85,11 @@ const CreateShop = (props: RouteComponentProps) => {
   useEffect(() => {
     fetchAll();
   }, []);
+
+  const formHander = (e: any) => {
+    const { value, name } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
 
   const phoneNumbersHandler = (value: string, index: number): void => {
     setPhoneNumbers(prev => {
@@ -108,14 +124,19 @@ const CreateShop = (props: RouteComponentProps) => {
   const parseInstagram = async (): Promise<void> => {
     setLoading(true);
     try {
-      const {
-        full_name,
-        description,
-        followers_count
-      } = await getShopInstagram(instagramLogin);
-      setName(full_name);
-      setDescription(description);
-      setFollowersCount(followers_count);
+      const response = await getShopInstagram(instagramLogin);
+      const image = await imageToBase.convertFromUrl(
+        response.profile_pic_url_hd
+      );
+      setForm(prev => ({
+        ...prev,
+        shopName: response.full_name,
+        description: response.description,
+        followersCount: response.followers_count,
+        whatsapp: response.whatsapp,
+        instagram: response.username
+      }));
+      setLogo(image);
       props.history.push({
         pathname: '/create-shop',
         search: '?step=2'
@@ -126,29 +147,42 @@ const CreateShop = (props: RouteComponentProps) => {
       setLoading(false);
     }
   };
+  console.log(categoriesForm);
+  console.log();
 
   const onCreateShop = async () => {
     const shopInfo: ShopMainInfo = {
-      shop_name: name,
-      description: description,
+      shop_name: form.shopName,
+      description: form.description,
       cities: [1],
-      logo_path: 'example',
-      goods_count: goodsCount,
-      followers_count: followersCount,
+      logo_path: '',
+      goods_count: +form.goodsCount,
+      followers_count: +form.followersCount,
       phone_numbers: phoneNumbers,
-      whatsapp: wpp,
+      whatsapp: form.whatsapp,
       addresses: addresses,
-      categories: [1,2],
-      instagram: 'stepup.kaz'
+      categories: [],
+      instagram: form.instagram
     };
     setLoading(true);
     try {
+      const image = await uploadToStore([imageToBase.cutPrefix(logo)]);
+      shopInfo.logo_path = image[0];
+      shopInfo.categories = categories
+        .filter(x => categoriesForm.indexOf(x.category_name) > -1)
+        .map(v => v.category_id);
       const res = await createShop(shopInfo);
+      console.log(res);
     } catch (err) {
       console.log(err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const onUploadImage = async (e: any) => {
+    const res = await imageToBase.convertFromFile(e.target.files[0]);
+    setLogo(res);
   };
 
   if (loading) {
@@ -175,16 +209,20 @@ const CreateShop = (props: RouteComponentProps) => {
     );
   }
 
+  console.log(form);
+
   return (
     <div>
+      <div></div>
       <input
         accept="image/*"
         style={{ display: 'none' }}
         id="contained-button-file"
         multiple
         type="file"
+        onChange={onUploadImage}
       />
-      <Avatar variant="square" className={classes.logo}></Avatar>
+      <Avatar variant="square" className={classes.logo} src={logo}></Avatar>
       <label htmlFor="contained-button-file">
         <Button
           variant="contained"
@@ -200,49 +238,55 @@ const CreateShop = (props: RouteComponentProps) => {
         variant="filled"
         label="Название"
         className={classes.input}
-        value={name}
-        onChange={e => setName(e.target.value)}
+        value={form.shopName}
+        onChange={formHander}
+        name="shopName"
       />
       <br />
       <Input
         variant="filled"
         label="Описание"
         className={classes.input}
-        value={description}
+        value={form.description}
         multiline
-        onChange={e => setDescription(e.target.value)}
+        onChange={formHander}
+        name="description"
       />
       <br />
       <Input
         variant="filled"
         label="Количество подписчиков"
         className={classes.input}
-        value={followersCount}
-        onChange={e => setFollowersCount(e.target.value)}
+        value={form.followersCount}
+        onChange={formHander}
+        name="followersCount"
       />
       <br />
       <Input
         variant="filled"
         label="Количество продуктов"
         className={classes.input}
-        value={goodsCount}
-        onChange={e => setGoodCount(e.target.value)}
+        value={form.goodsCount}
+        onChange={formHander}
+        name="goodsCount"
       />
       <br />
       <Input
         variant="filled"
         label="Whats'app"
         className={classes.input}
-        value={wpp}
-        onChange={e => setWpp(e.target.value)}
+        value={form.whatsapp}
+        onChange={formHander}
+        name="whatsapp"
       />
       <br />
       <Input
         variant="filled"
         label="Ссылка на Instagram"
         className={classes.input}
-        value={instagramLink}
-        onChange={e => setInstagramLink(e.target.value)}
+        value={form.instagram}
+        onChange={formHander}
+        name="instagram"
       />
       <br />
       <div>
@@ -253,7 +297,7 @@ const CreateShop = (props: RouteComponentProps) => {
                 variant="filled"
                 label={`Телефон ${i + 1}`}
                 className={classes.input}
-                name={`phone${i + 1}`}
+                name="phoneNumbers"
                 onChange={e => phoneNumbersHandler(e.target.value, i)}
               />
               <br />

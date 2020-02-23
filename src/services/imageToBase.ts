@@ -1,5 +1,5 @@
-export const convert = (url: string): Promise<any> => {
-  const promise = new Promise((resolve, reject) => {
+export const convertFromUrl = (url: any): Promise<any> => {
+  return new Promise((resolve, reject) => {
     var xhr = new XMLHttpRequest();
     xhr.onload = () => {
       var reader = new FileReader();
@@ -12,5 +12,17 @@ export const convert = (url: string): Promise<any> => {
     xhr.responseType = 'blob';
     xhr.send();
   });
-  return promise;
+};
+
+export const convertFromFile = (file: any) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+};
+
+export const cutPrefix = (code: string): string => {
+  return code.split(',')[1];
 };

@@ -61,7 +61,7 @@ const CreateProduct = (props: RouteComponentProps<MatchParams>) => {
     let convertedImages: string[] = [];
     const parsed: ParseSinglePostInterface = ls.get(LS_SINGLE_PARSED_POST);
     for (let i = 0; i < parsed.post_images_urls.length; i++) {
-      const image = await imageToBase.convert(parsed.post_images_urls[i]);
+      const image = await imageToBase.convertFromUrl(parsed.post_images_urls[i]);
       convertedImages.push(image);
     }
     setForm(prev => ({
@@ -111,7 +111,8 @@ const CreateProduct = (props: RouteComponentProps<MatchParams>) => {
       is_available: form.is_available
     };
     try {
-      const storedImages = await uploadToStore(form.photos);
+      submitForm.photos = form.photos.map(v => imageToBase.cutPrefix(v));
+      const storedImages = await uploadToStore(submitForm.photos);
       submitForm.photos = storedImages;
       await createProductController(submitForm);
     } catch (err) {
