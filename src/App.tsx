@@ -20,6 +20,7 @@ import CreateProduct from './pages/CreateProduct';
 import ShopList from './pages/ShopList';
 import ProductList from './pages/ProductList';
 import ParsedProducts from './pages/ParsedProducts';
+import CreateCategory from './pages/CreateCategory';
 
 const drawerWidth = 240;
 
@@ -90,6 +91,7 @@ const App = () => {
           <Route path="/shop-list" component={ShopList}></Route>
           <Route path="/product-list/:id" component={ProductList}></Route>
           <Route path="/parsed-products/:id" component={ParsedProducts}></Route>
+          <Route path="/create-category" component={CreateCategory}></Route>
           <Redirect from="/" to="/shop-list" />
         </Switch>
       </main>
