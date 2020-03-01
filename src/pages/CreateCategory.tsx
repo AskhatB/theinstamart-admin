@@ -1,13 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
+import { createStyles, Theme, makeStyles } from '@material-ui/core/styles';
 import Input from '@material-ui/core/TextField';
-import Autocomplete from '@material-ui/lab/Autocomplete';
-import Chip from '@material-ui/core/Chip';
+import FormControl from '@material-ui/core/FormControl';
+import InputLabel from '@material-ui/core/InputLabel';
+import Select from '@material-ui/core/Select';
+import LinearProgress from '@material-ui/core/LinearProgress';
+import Avatar from '@material-ui/core/Avatar';
+import Button from '@material-ui/core/Button';
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert, { AlertProps } from '@material-ui/lab/Alert';
 
-import { Category as CategoryInterface } from '../types/category';
+import {
+  Category as CategoryInterface,
+  CategoryCreation as CategoryCreationInterface
+} from '../types/category';
+import * as categoryController from '../controllers/category';
+import * as imageToBase from '../services/imageToBase';
+
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    logo: {
+      width: theme.spacing(25),
+      height: theme.spacing(25)
+    },
+    uploadButton: {
+      marginTop: theme.spacing(2),
+      marginBottom: theme.spacing(2)
+    }
+  })
+);
 
 const CreateCategory = () => {
   const [categories, setCategories] = useState<CategoryInterface[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [errorOpen, setErrorOpen] = useState(false);
   const [form, setForm] = useState({
     category_name: '',
     category_name_single: '',
@@ -15,20 +43,106 @@ const CreateCategory = () => {
     image: '',
     parent_id: ''
   });
+  const classes = useStyles();
+
+  const fetchCategories = async () => {
+    const categories: CategoryInterface[] = await categoryController.getAllCategories();
+    categories.unshift({ category_id: 0, category_name: 'Нет' });
+    setCategories(categories);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   const formHandler = (e: any) => {
     const { name, value } = e.target;
     setForm(prev => ({
       ...prev,
-      [name]: value
+      [name]: value.toString()
     }));
   };
 
+  const clearForm = () => {
+    setForm({
+      category_name: '',
+      category_name_single: '',
+      icon: '',
+      image: '',
+      parent_id: ''
+    });
+  };
 
+  const onUploadImage = async (e: any) => {
+    const res: string = await imageToBase.convertFromFile(e.target.files[0]);
+    setForm(prev => ({
+      ...prev,
+      image: res
+    }));
+  };
 
-  console.log(form);
+  const onSuccesCreation = () => {
+    setSuccessOpen(true);
+    clearForm();
+  };
+
+  const onErrorCreation = () => {
+    setErrorOpen(true);
+  };
+
+  const onSubmitForm = async () => {
+    setLoading(true);
+    try {
+      const categoryInfo: CategoryCreationInterface = {
+        category_name: form.category_name,
+        category_name_single: form.category_name_single,
+        icon: '',
+        image: form.image
+      };
+
+      if (form.parent_id !== '' && form.parent_id !== '0') {
+        categoryInfo.parent_id = +form.parent_id;
+      }
+      await categoryController.createCategory(categoryInfo);
+      onSuccesCreation();
+    } catch (err) {
+      onErrorCreation();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <LinearProgress />;
+  }
+
   return (
     <div>
+      <input
+        accept="image/*"
+        id="contained-button-file"
+        multiple
+        type="file"
+        onChange={onUploadImage}
+        style={{ display: 'none' }}
+      />
+      <Avatar
+        variant="square"
+        className={classes.logo}
+        src={form.image}
+      ></Avatar>
+      <label htmlFor="contained-button-file">
+        <Button
+          variant="contained"
+          color="primary"
+          component="span"
+          className={classes.uploadButton}
+        >
+          Загрузить логотип
+        </Button>
+      </label>
+      <br />
       <Input
         variant="filled"
         label="Название"
@@ -36,6 +150,7 @@ const CreateCategory = () => {
         onChange={formHandler}
         name="category_name"
       />
+      <br />
       <Input
         variant="filled"
         label="Префикс"
@@ -43,7 +158,61 @@ const CreateCategory = () => {
         onChange={formHandler}
         name="category_name_single"
       />
-      
+      <br />
+      <FormControl>
+        <InputLabel htmlFor="age-native-simple">Категория</InputLabel>
+        <Select
+          native
+          value={form.parent_id}
+          onChange={formHandler}
+          inputProps={{
+            name: 'parent_id',
+            id: 'age-native-simple'
+          }}
+        >
+          {categories.map((v: CategoryInterface) => (
+            <option value={v.category_id}>{v.category_name}</option>
+          ))}
+        </Select>
+      </FormControl>
+      <br />
+      <Button
+        variant="contained"
+        color="primary"
+        component="span"
+        className={classes.uploadButton}
+        onClick={onSubmitForm}
+      >
+        Создать категорию
+      </Button>
+      <Snackbar
+        open={successOpen}
+        autoHideDuration={2500}
+        onClose={() => setSuccessOpen(false)}
+      >
+        <MuiAlert
+          elevation={6}
+          variant="filled"
+          severity="success"
+          onClose={() => setSuccessOpen(false)}
+        >
+          Категория создана
+        </MuiAlert>
+      </Snackbar>
+      <Snackbar
+        open={errorOpen}
+        autoHideDuration={2500}
+        onClose={() => setErrorOpen(false)}
+      >
+        <MuiAlert
+          elevation={6}
+          variant="filled"
+          severity="error"
+          onClose={() => setErrorOpen(false)}
+        >
+          Произошла ошибка
+        </MuiAlert>
+      </Snackbar>
     </div>
   );
 };

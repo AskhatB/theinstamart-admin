@@ -213,7 +213,6 @@ const CreateShop = (props: RouteComponentProps) => {
 
   return (
     <div>
-      <div></div>
       <input
         accept="image/*"
         style={{ display: 'none' }}

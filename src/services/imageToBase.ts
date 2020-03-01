@@ -14,7 +14,7 @@ export const convertFromUrl = (url: any): Promise<any> => {
   });
 };
 
-export const convertFromFile = (file: any) => {
+export const convertFromFile = (file: any): Promise<any> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
