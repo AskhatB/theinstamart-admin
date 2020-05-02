@@ -19,9 +19,10 @@ import { createProduct as createProductController } from '../controllers/product
 import { uploadToStore } from '../controllers/image';
 
 import { LS_SINGLE_PARSED_POST } from '../variables';
+import { category as categoryInitalValue } from '../variables/initialValues';
 
 import { Category as CategoryInterface } from '../types/category';
-import { Product as ProductInterface } from '../types/product';
+import { ProductCreation as ProductCreationInterface } from '../types/product';
 import { SinglePost as ParseSinglePostInterface } from '../types/parse';
 
 import * as imageToBase from '../services/imageToBase';
@@ -31,8 +32,8 @@ const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     input: {
       marginBottom: theme.spacing(2),
-      width: 350
-    }
+      width: 350,
+    },
   })
 );
 
@@ -41,9 +42,14 @@ interface MatchParams {
 }
 
 const CreateProduct = (props: RouteComponentProps<MatchParams>) => {
+  const classes = useStyles();
   const [loading, setLoading] = useState(true);
-  const [categories, setCategories] = useState();
-  const [subcategories, setSubcategories] = useState();
+  const [categories, setCategories] = useState<CategoryInterface[]>([
+    categoryInitalValue,
+  ]);
+  const [subcategories, setSubcategories] = useState<CategoryInterface[]>([
+    categoryInitalValue,
+  ]);
   const [form, setForm] = useState({
     good_name: '',
     shop_id: '',
@@ -52,30 +58,32 @@ const CreateProduct = (props: RouteComponentProps<MatchParams>) => {
     description: '',
     price: '',
     photos: [''],
-    is_available: false
+    is_available: false,
   });
-
-  const classes = useStyles();
 
   const getDataFromParse = async (): Promise<void> => {
     let convertedImages: string[] = [];
     const parsed: ParseSinglePostInterface = ls.get(LS_SINGLE_PARSED_POST);
     for (let i = 0; i < parsed.post_images_urls.length; i++) {
-      const image = await imageToBase.convertFromUrl(parsed.post_images_urls[i]);
+      const image = await imageToBase.convertFromUrl(
+        parsed.post_images_urls[i]
+      );
       convertedImages.push(image);
     }
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
       description: parsed.post_text,
-      photos: convertedImages
+      photos: convertedImages,
     }));
   };
 
   const fetchAll = async (): Promise<void> => {
     try {
       const res: CategoryInterface[] = await getAllCategories();
-      const subcategories = res.filter(x => !!x.parent_id);
-      const categories = res.filter(x => !x.parent_id);
+      const subcategories: CategoryInterface[] = res.filter(
+        (x) => !!x.parent_id
+      );
+      const categories: CategoryInterface[] = res.filter((x) => !x.parent_id);
       setCategories(categories);
       setSubcategories(subcategories);
       getDataFromParse();
@@ -95,12 +103,12 @@ const CreateProduct = (props: RouteComponentProps<MatchParams>) => {
     if (type === 'checkbox') {
       value = checked;
     }
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const submitForm = async () => {
+  const submitForm = async (): Promise<void> => {
     setLoading(true);
-    const submitForm: ProductInterface = {
+    const submitForm: ProductCreationInterface = {
       good_name: form.good_name,
       shop_id: +props.match.params.shop,
       category_id: +form.category_id,
@@ -108,10 +116,10 @@ const CreateProduct = (props: RouteComponentProps<MatchParams>) => {
       description: form.description,
       price: +form.price,
       photos: form.photos,
-      is_available: form.is_available
+      is_available: form.is_available,
     };
     try {
-      submitForm.photos = form.photos.map(v => imageToBase.cutPrefix(v));
+      submitForm.photos = form.photos.map((v) => imageToBase.cutPrefix(v));
       const storedImages = await uploadToStore(submitForm.photos);
       submitForm.photos = storedImages;
       await createProductController(submitForm);
@@ -122,10 +130,7 @@ const CreateProduct = (props: RouteComponentProps<MatchParams>) => {
     }
   };
 
-  if (loading) {
-    return <LinearProgress />;
-  }
-
+  if (loading) return <LinearProgress />;
   return (
     <div>
       <ImageUploader images={form.photos} />

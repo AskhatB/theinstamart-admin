@@ -8,12 +8,8 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import Toolbar from '@material-ui/core/Toolbar';
 import List from '@material-ui/core/List';
 import Typography from '@material-ui/core/Typography';
-import Divider from '@material-ui/core/Divider';
 import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import InboxIcon from '@material-ui/icons/MoveToInbox';
-import MailIcon from '@material-ui/icons/Mail';
 
 import CreateShop from './pages/CreateShop';
 import CreateProduct from './pages/CreateProduct';
@@ -21,29 +17,30 @@ import ShopList from './pages/ShopList';
 import ProductList from './pages/ProductList';
 import ParsedProducts from './pages/ParsedProducts';
 import CreateCategory from './pages/CreateCategory';
+import CategoryList from './pages/CategoryList';
 
 const drawerWidth = 240;
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
-      display: 'flex'
+      display: 'flex',
     },
     appBar: {
-      zIndex: theme.zIndex.drawer + 1
+      zIndex: theme.zIndex.drawer + 1,
     },
     drawer: {
       width: drawerWidth,
-      flexShrink: 0
+      flexShrink: 0,
     },
     drawerPaper: {
-      width: drawerWidth
+      width: drawerWidth,
     },
     content: {
       flexGrow: 1,
-      padding: theme.spacing(3)
+      padding: theme.spacing(3),
     },
-    toolbar: theme.mixins.toolbar
+    toolbar: theme.mixins.toolbar,
   })
 );
 
@@ -57,41 +54,43 @@ const App = () => {
         <Link to="/">
           <Toolbar>
             <Typography variant="h6" noWrap style={{ color: '#ffffff' }}>
-              <strong>Theinstamart.com</strong> Панель администратора
+              <strong>Theinstamart.com</strong> | Панель администратора
             </Typography>
           </Toolbar>
         </Link>
       </AppBar>
-      {/* <Drawer
+      <Drawer
         className={classes.drawer}
         variant="permanent"
         classes={{
-          paper: classes.drawerPaper
+          paper: classes.drawerPaper,
         }}
       >
         <div className={classes.toolbar} />
         <List>
-          <ListItem button>
-            <Link to="/create-shop?step=1">
-              <ListItemText primary="Добавить магазин" />
-            </Link>
-          </ListItem>
-          <ListItem button>
-            <Link to="/create-product">
-              <ListItemText primary="Добавить продукт" />
-            </Link>
-          </ListItem>
+          <Link to="/shop-list">
+            <ListItem button>
+              <ListItemText primary="Магазины" />
+            </ListItem>
+          </Link>
+          <Link to="/category-list">
+            <ListItem button>
+              <ListItemText primary="Категории" />
+            </ListItem>
+          </Link>
         </List>
-      </Drawer> */}
+      </Drawer>
       <main className={classes.content}>
         <div className={classes.toolbar} />
         <Switch>
-          <Route path="/create-shop" component={CreateShop}></Route>
-          <Route path="/create-product/:shop" component={CreateProduct}></Route>
-          <Route path="/shop-list" component={ShopList}></Route>
-          <Route path="/product-list/:id" component={ProductList}></Route>
-          <Route path="/parsed-products/:id" component={ParsedProducts}></Route>
-          <Route path="/create-category" component={CreateCategory}></Route>
+          <Route exact path="/create-shop" component={CreateShop} />
+          <Route exact path="/create-product/:shop" component={CreateProduct}/>
+          <Route exact path="/shop-list" component={ShopList}/>
+          <Route exact path="/product-list/:id" component={ProductList}/>
+          <Route exact path="/parsed-products/:id" component={ParsedProducts}/>
+          <Route exact path="/create-category" component={CreateCategory}/>
+          <Route exact path="/create-category/:id" component={CreateCategory}/>
+          <Route exact path="/category-list" component={CategoryList}/>
           <Redirect from="/" to="/shop-list" />
         </Switch>
       </main>

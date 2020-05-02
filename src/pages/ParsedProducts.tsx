@@ -19,18 +19,18 @@ import { LS_SINGLE_PARSED_POST } from '../variables';
 
 import * as ls from '../services/localStorage';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     width: '100%',
     marginBottom: theme.spacing(2),
     marginRight: theme.spacing(2),
-    padding: theme.spacing(1)
+    padding: theme.spacing(1),
   },
   df: {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between'
-  }
+    justifyContent: 'space-between',
+  },
 }));
 
 interface MatchParams {
@@ -38,31 +38,35 @@ interface MatchParams {
 }
 
 const ParsedProducts = (props: RouteComponentProps<MatchParams>) => {
-  const [loading, setLoading] = useState(true);
-  const [instagram, setInstagram] = useState();
   const classes = useStyles();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [instagram, setInstagram] = useState();
 
-  const fetchAll = async () => {
+  const fetchAll = async (): Promise<void> => {
     try {
       const shop: ShopMainInfo = await getShop(+props.match.params.id);
       const response = await getInstagramShop(shop.instagram);
       setInstagram(response);
     } catch (err) {
+      setError(err.toString());
       console.log(err);
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchAll();
   }, []);
 
-  const addProductHandler = (value: ParseSinglePostInterface) => {
+  const addProductHandler = (value: ParseSinglePostInterface): void => {
     ls.set(LS_SINGLE_PARSED_POST, value);
     props.history.push(`/create-product/${props.match.params.id}`);
   };
 
   if (loading) return <LinearProgress />;
+  if (!!error) return <div>Произошла ошибка: {error}</div>;
   return (
     <div>
       <Link to={`/create-product/${props.match.params.id}`}>

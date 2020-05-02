@@ -1,0 +1,56 @@
+export const product = {
+  good_name: '',
+  shop_id: 0,
+  category_id: 0,
+  subcategory_id: 0,
+  description: '',
+  price: 0,
+  photos: [''],
+  is_available: false,
+  category: {
+    category_id: 0,
+    category_name: '',
+  },
+  subcategory: { category_id: 0, category_name: '' },
+  good_id: 0,
+  shop: {
+    shop_name: '',
+    logo_path: '',
+    description: '',
+    cities: [0],
+    goods_count: 0,
+    followers_count: 0,
+    phone_numbers: [''],
+    whatsapp: '',
+    addresses: [''],
+    categories: [0],
+    instagram: '',
+    shop_id: 0,
+  },
+  slug: '',
+};
+
+export const category = {
+  category_id: 0,
+  category_name: '',
+  category_name_single: '',
+  icon: '',
+  image: '',
+  parent_id: 0,
+  slug: '',
+};
+
+export const shop = {
+  shop_name: '',
+  logo_path: '',
+  description: '',
+  cities: [0],
+  goods_count: 0,
+  followers_count: 0,
+  phone_numbers: [''],
+  whatsapp: '',
+  addresses: [''],
+  categories: [0],
+  instagram: '',
+  shop_id: 0,
+};

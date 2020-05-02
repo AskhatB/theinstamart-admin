@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { RouteComponentProps } from 'react-router-dom'
 
 import { createStyles, Theme, makeStyles } from '@material-ui/core/styles';
 import Input from '@material-ui/core/TextField';
@@ -9,30 +10,46 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import Snackbar from '@material-ui/core/Snackbar';
-import MuiAlert, { AlertProps } from '@material-ui/lab/Alert';
+import MuiAlert from '@material-ui/lab/Alert';
 
 import {
   Category as CategoryInterface,
-  CategoryCreation as CategoryCreationInterface
+  CategoryCreation as CategoryCreationInterface,
 } from '../types/category';
+
 import * as categoryController from '../controllers/category';
+
 import * as imageToBase from '../services/imageToBase';
+
+import { category as categoryInitalValue } from '../variables/initialValues';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     logo: {
       width: theme.spacing(25),
-      height: theme.spacing(25)
+      height: theme.spacing(25),
     },
     uploadButton: {
       marginTop: theme.spacing(2),
-      marginBottom: theme.spacing(2)
+      marginBottom: theme.spacing(2),
+    },
+    field: {
+      marginTop: theme.spacing(1),
+      marginBottom: theme.spacing(1),
     }
   })
 );
 
-const CreateCategory = () => {
-  const [categories, setCategories] = useState<CategoryInterface[]>([]);
+interface MatchParams {
+  id: string;
+}
+
+const CreateCategory = (props: RouteComponentProps<MatchParams>) => {
+  console.log("props ---> ", props);
+  const classes = useStyles();
+  const [categories, setCategories] = useState<CategoryInterface[]>([
+    categoryInitalValue,
+  ]);
   const [loading, setLoading] = useState(true);
   const [successOpen, setSuccessOpen] = useState(false);
   const [errorOpen, setErrorOpen] = useState(false);
@@ -41,11 +58,10 @@ const CreateCategory = () => {
     category_name_single: '',
     icon: '',
     image: '',
-    parent_id: ''
+    parent_id: '',
   });
-  const classes = useStyles();
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (): Promise<void> => {
     const categories: CategoryInterface[] = await categoryController.getAllCategories();
     categories.unshift({ category_id: 0, category_name: 'Нет' });
     setCategories(categories);
@@ -56,49 +72,49 @@ const CreateCategory = () => {
     fetchCategories();
   }, []);
 
-  const formHandler = (e: any) => {
+  const formHandler = (e: any): void => {
     const { name, value } = e.target;
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
-      [name]: value.toString()
+      [name]: value.toString(),
     }));
   };
 
-  const clearForm = () => {
+  const clearForm = (): void => {
     setForm({
       category_name: '',
       category_name_single: '',
       icon: '',
       image: '',
-      parent_id: ''
+      parent_id: '',
     });
   };
 
-  const onUploadImage = async (e: any) => {
+  const onUploadImage = async (e: any): Promise<void> => {
     const res: string = await imageToBase.convertFromFile(e.target.files[0]);
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
-      image: res
+      image: res,
     }));
   };
 
-  const onSuccesCreation = () => {
+  const onSuccesCreation = (): void => {
     setSuccessOpen(true);
     clearForm();
   };
 
-  const onErrorCreation = () => {
+  const onErrorCreation = (): void => {
     setErrorOpen(true);
   };
 
-  const onSubmitForm = async () => {
+  const onSubmitForm = async (): Promise<void> => {
     setLoading(true);
     try {
       const categoryInfo: CategoryCreationInterface = {
         category_name: form.category_name,
         category_name_single: form.category_name_single,
         icon: '',
-        image: form.image
+        image: form.image,
       };
 
       if (form.parent_id !== '' && form.parent_id !== '0') {
@@ -113,10 +129,7 @@ const CreateCategory = () => {
     }
   };
 
-  if (loading) {
-    return <LinearProgress />;
-  }
-
+  if (loading) return <LinearProgress />;
   return (
     <div>
       <input
@@ -149,6 +162,7 @@ const CreateCategory = () => {
         value={form.category_name}
         onChange={formHandler}
         name="category_name"
+        className={classes.field}
       />
       <br />
       <Input
@@ -157,6 +171,7 @@ const CreateCategory = () => {
         value={form.category_name_single}
         onChange={formHandler}
         name="category_name_single"
+        className={classes.field}
       />
       <br />
       <FormControl>
@@ -165,9 +180,10 @@ const CreateCategory = () => {
           native
           value={form.parent_id}
           onChange={formHandler}
+          className={classes.field}
           inputProps={{
             name: 'parent_id',
-            id: 'age-native-simple'
+            id: 'age-native-simple',
           }}
         >
           {categories.map((v: CategoryInterface) => (

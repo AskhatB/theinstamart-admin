@@ -31,7 +31,7 @@ const ImageUploader = (props: PropTypes) => {
       {props.images.map(v => {
         return (
           <div className={classes.imageRoot}>
-            <img src={v} />
+            <img src={v} alt="some alt"/>
           </div>
         );
       })}

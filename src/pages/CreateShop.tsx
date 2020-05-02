@@ -5,7 +5,7 @@ import qs from 'query-string';
 import { createStyles, Theme, makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Input from '@material-ui/core/TextField';
-import Loader from '@material-ui/core/LinearProgress';
+import LinearProgress from '@material-ui/core/LinearProgress';
 import Avatar from '@material-ui/core/Avatar';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import Chip from '@material-ui/core/Chip';
@@ -22,9 +22,30 @@ import { ShopMainInfo } from '../types/shopMainInfo';
 
 import * as variables from '../variables';
 
+const drawerWidth = 240;
+const inputWidth = 350;
+const useStyles = makeStyles((theme: Theme) =>
+    createStyles({
+      input: {
+        marginBottom: theme.spacing(2),
+        width: inputWidth,
+      },
+      logo: {
+        width: theme.spacing(25),
+        height: theme.spacing(25),
+      },
+      drawerPaper: {
+        width: drawerWidth,
+      },
+      uploadButton: {
+        marginTop: theme.spacing(2),
+        marginBottom: theme.spacing(2),
+      },
+    })
+  );
+
 const CreateShop = (props: RouteComponentProps) => {
-  const drawerWidth = 240;
-  const inputWidth = 350;
+  const classes = useStyles();
   const { step } = qs.parse(props.location.search);
 
   const [loading, setLoading] = useState(true);
@@ -41,35 +62,13 @@ const CreateShop = (props: RouteComponentProps) => {
     whatsapp: '',
     addresses: [],
     categories: [],
-    instagram: ''
+    instagram: '',
   });
   const [phoneNumbers, setPhoneNumbers] = useState(['']);
   const [addresses, setAddresses] = useState(['']);
   const [categoriesForm, setCategoriesForm] = useState(['']);
   const [cities, setCities] = useState([]);
-  const [logo, setLogo] = useState();
-
-  const useStyles = makeStyles((theme: Theme) =>
-    createStyles({
-      input: {
-        marginBottom: theme.spacing(2),
-        width: inputWidth
-      },
-      logo: {
-        width: theme.spacing(25),
-        height: theme.spacing(25)
-      },
-      drawerPaper: {
-        width: drawerWidth
-      },
-      uploadButton: {
-        marginTop: theme.spacing(2),
-        marginBottom: theme.spacing(2)
-      }
-    })
-  );
-
-  const classes = useStyles();
+  const [logo, setLogo] = useState('');
 
   const fetchAll = async (): Promise<void> => {
     try {
@@ -86,39 +85,39 @@ const CreateShop = (props: RouteComponentProps) => {
     fetchAll();
   }, []);
 
-  const formHander = (e: any) => {
+  const formHander = (e: any): void => {
     const { value, name } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const phoneNumbersHandler = (value: string, index: number): void => {
-    setPhoneNumbers(prev => {
+    setPhoneNumbers((prev) => {
       prev[index] = value;
       return prev;
     });
   };
 
   const addressesHandler = (value: string, index: number): void => {
-    setAddresses(prev => {
+    setAddresses((prev) => {
       prev[index] = value;
       return prev;
     });
   };
 
-  const categoriesHandler = (_: any, values: any) => {
+  const categoriesHandler = (_: any, values: any): void => {
     setCategoriesForm(values);
   };
 
-  const citiesHandler = (_: any, values: any) => {
+  const citiesHandler = (_: any, values: any): void => {
     setCities(values);
   };
 
-  const addPhone = () => {
-    setPhoneNumbers(prev => [...prev, '']);
+  const addPhone = (): void => {
+    setPhoneNumbers((prev) => [...prev, '']);
   };
 
-  const addAddress = () => {
-    setAddresses(prev => [...prev, '']);
+  const addAddress = (): void => {
+    setAddresses((prev) => [...prev, '']);
   };
 
   const parseInstagram = async (): Promise<void> => {
@@ -128,18 +127,18 @@ const CreateShop = (props: RouteComponentProps) => {
       const image = await imageToBase.convertFromUrl(
         response.profile_pic_url_hd
       );
-      setForm(prev => ({
+      setForm((prev) => ({
         ...prev,
         shopName: response.full_name,
         description: response.description,
         followersCount: response.followers_count,
         whatsapp: response.whatsapp,
-        instagram: response.username
+        instagram: response.username,
       }));
       setLogo(image);
       props.history.push({
         pathname: '/create-shop',
-        search: '?step=2'
+        search: '?step=2',
       });
     } catch (err) {
       console.log(err);
@@ -147,10 +146,8 @@ const CreateShop = (props: RouteComponentProps) => {
       setLoading(false);
     }
   };
-  console.log(categoriesForm);
-  console.log();
 
-  const onCreateShop = async () => {
+  const onCreateShop = async (): Promise<void> => {
     const shopInfo: ShopMainInfo = {
       shop_name: form.shopName,
       description: form.description,
@@ -162,15 +159,15 @@ const CreateShop = (props: RouteComponentProps) => {
       whatsapp: form.whatsapp,
       addresses: addresses,
       categories: [],
-      instagram: form.instagram
+      instagram: form.instagram,
     };
     setLoading(true);
     try {
       const image = await uploadToStore([imageToBase.cutPrefix(logo)]);
       shopInfo.logo_path = image[0];
       shopInfo.categories = categories
-        .filter(x => categoriesForm.indexOf(x.category_name) > -1)
-        .map(v => v.category_id);
+        .filter((x) => categoriesForm.indexOf(x.category_name) > -1)
+        .map((v) => v.category_id);
       const res = await createShop(shopInfo);
       console.log(res);
     } catch (err) {
@@ -180,15 +177,12 @@ const CreateShop = (props: RouteComponentProps) => {
     }
   };
 
-  const onUploadImage = async (e: any) => {
+  const onUploadImage = async (e: any): Promise<void> => {
     const res = await imageToBase.convertFromFile(e.target.files[0]);
     setLogo(res);
   };
 
-  if (loading) {
-    return <Loader />;
-  }
-
+  if (loading) return <LinearProgress />;
   if (step === '1') {
     return (
       <div>
@@ -197,7 +191,7 @@ const CreateShop = (props: RouteComponentProps) => {
           label="Введите instagram логин"
           className={classes.input}
           value={instagramLogin}
-          onChange={e => setInstagramLogin(e.target.value)}
+          onChange={(e) => setInstagramLogin(e.target.value)}
         />
         <br />
         <Button variant="contained" color="primary" onClick={parseInstagram}>
@@ -208,9 +202,6 @@ const CreateShop = (props: RouteComponentProps) => {
       </div>
     );
   }
-
-  console.log(form);
-
   return (
     <div>
       <input
@@ -297,7 +288,7 @@ const CreateShop = (props: RouteComponentProps) => {
                 label={`Телефон ${i + 1}`}
                 className={classes.input}
                 name="phoneNumbers"
-                onChange={e => phoneNumbersHandler(e.target.value, i)}
+                onChange={(e) => phoneNumbersHandler(e.target.value, i)}
               />
               <br />
             </>
@@ -318,7 +309,7 @@ const CreateShop = (props: RouteComponentProps) => {
                   label={`Адрес ${i + 1}`}
                   className={classes.input}
                   name={`phone${i + 1}`}
-                  onChange={e => addressesHandler(e.target.value, i)}
+                  onChange={(e) => addressesHandler(e.target.value, i)}
                 />
                 <br />
               </>
@@ -335,7 +326,7 @@ const CreateShop = (props: RouteComponentProps) => {
             multiple
             id="tags-filled"
             className={classes.input}
-            options={categories.map(v => v.category_name)}
+            options={categories.map((v) => v.category_name)}
             freeSolo
             onChange={categoriesHandler}
             renderTags={(value: string[], getTagProps) =>
@@ -347,7 +338,7 @@ const CreateShop = (props: RouteComponentProps) => {
                 />
               ))
             }
-            renderInput={params => (
+            renderInput={(params) => (
               <Input
                 {...params}
                 variant="filled"
@@ -375,7 +366,7 @@ const CreateShop = (props: RouteComponentProps) => {
                 />
               ))
             }
-            renderInput={params => (
+            renderInput={(params) => (
               <Input
                 {...params}
                 variant="filled"

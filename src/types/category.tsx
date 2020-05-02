@@ -2,6 +2,10 @@ export interface Category {
   category_id: number;
   category_name: string;
   parent_id?: number;
+  category_name_single?: string;
+  icon?: string;
+  image?: string;
+  slug?: string;
 }
 
 export interface CategoryCreation {

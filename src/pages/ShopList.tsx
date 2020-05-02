@@ -10,26 +10,29 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 
 import { allShops } from '../controllers/shop';
+
 import { ShopMainInfo } from '../types/shopMainInfo';
 
-const useStyles = makeStyles(theme => ({
+import { shop as shotInitialValue } from '../variables/initialValues';
+
+const useStyles = makeStyles((theme) => ({
   root: {
     minWidth: 275,
-    marginBottom: theme.spacing(2)
+    marginBottom: theme.spacing(2),
   },
   df: {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between'
-  }
+    justifyContent: 'space-between',
+  },
 }));
 
 const ShopList = () => {
   const classes = useStyles();
-  const [shops, setShops] = useState();
+  const [shops, setShops] = useState<ShopMainInfo[]>([shotInitialValue]);
   const [loading, setLoading] = useState(true);
 
-  const fetchAll = async () => {
+  const fetchAll = async (): Promise<void> => {
     const res: ShopMainInfo[] = await allShops();
     setShops(res);
     setLoading(false);
@@ -39,10 +42,7 @@ const ShopList = () => {
     fetchAll();
   }, []);
 
-  if (loading) {
-    return <LinearProgress />;
-  }
-
+  if (loading) return <LinearProgress />;
   return (
     <div>
       <Link to="/create-shop?step=1">
@@ -56,7 +56,7 @@ const ShopList = () => {
       </Link>
       {shops.map((v: ShopMainInfo) => {
         return (
-          <Card className={classes.root}>
+          <Card className={classes.root} key={v.shop_name}>
             <CardContent className={classes.df}>
               <div className={classes.df}>
                 <Avatar style={{ marginRight: 15 }} src={v.logo_path}></Avatar>
